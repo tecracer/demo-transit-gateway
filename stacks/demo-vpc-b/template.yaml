@@ -1,0 +1,161 @@
+Description: >
+    This template deploys a VPC, with a pair of public and private subnets spread 
+    across two Availabilty Zones. It deploys an Internet Gateway, with a default 
+    route on the public subnets. It deploys a pair of NAT Gateways (one in each AZ), 
+    and default routes for them in the private subnets.
+
+Parameters:
+
+    Name:
+        Description: An environment name that will be prefixed to resource names
+        Type: String
+
+    Cidr: 
+        Description: Please enter the IP range (CIDR notation) for this VPC
+        Type: String
+        Default: 10.192.0.0/16
+        AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
+
+    key:
+        Description: ssh key
+        Type: String
+    ip:
+      Description: IP for Instance
+      Type: String
+
+Mappings:
+  AmazonLinuxAMI:
+    eu-west-1:
+      AMI: ami-08935252a36e25f85
+    eu-central-1:
+      AMI: ami-0cfbf4f6db41068ac
+   
+
+Resources:
+#######
+# VPC
+####
+    VPC: 
+      Type: AWS::EC2::VPC
+      Properties:
+        CidrBlock: 
+          Ref: Cidr
+        Tags: 
+          - Key: Name 
+            Value: !Sub VPC ${Name} 
+          - Key: Project 
+            Value: "demo-transit-gateway"
+            
+    InternetGateway:
+      Type: AWS::EC2::InternetGateway
+      Properties:
+        Tags:
+          - Key: Name
+            Value: 
+              Ref: Name
+            
+    InternetGatewayAttachment:
+      Type: AWS::EC2::VPCGatewayAttachment
+      Properties:
+        InternetGatewayId: 
+          Ref: InternetGateway
+        VpcId: 
+          Ref: VPC
+
+    PublicSubnet1: 
+      Type: AWS::EC2::Subnet
+      Properties:
+        VpcId: 
+          Ref: VPC
+        AvailabilityZone: 
+          Fn::Select: 
+            - 0
+            - Fn::GetAZs: ""
+        CidrBlock: 
+          Ref: Cidr
+        MapPublicIpOnLaunch: true
+        Tags: 
+          - Key: Name 
+            Value: !Sub ${Name} Public Subnet a
+
+ 
+    PublicRouteTable:
+        Type: AWS::EC2::RouteTable
+        Properties: 
+            VpcId: 
+              Ref: VPC
+            Tags: 
+                - Key: Name 
+                  Value: !Sub ${Name} Public Routes
+
+    DefaultPublicRoute: 
+        Type: AWS::EC2::Route
+        DependsOn: InternetGatewayAttachment
+        Properties: 
+            RouteTableId: 
+              Ref: PublicRouteTable
+            DestinationCidrBlock: 0.0.0.0/0
+            GatewayId: 
+              Ref: InternetGateway
+
+    PublicSubnet1RouteTableAssociation:
+      Type: AWS::EC2::SubnetRouteTableAssociation
+      Properties:
+        RouteTableId: 
+          Ref: PublicRouteTable
+        SubnetId: !
+          Ref: PublicSubnet1
+
+    NodeSecurityGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Port 80 whole 10 net
+        VpcId:
+            Ref: VPC
+        Tags:
+          - Key: Name
+            Value: NodeSecurityGroup
+        SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 10.0.0.0/16
+
+#####
+# EC2
+####
+
+    MyEC2Instance: 
+        Type: AWS::EC2::Instance
+        Properties: 
+          ImageId: 
+            Fn::FindInMap:
+            - AmazonLinuxAMI
+            - Ref: AWS::Region
+            - AMI
+          KeyName: 
+            Ref: key
+          InstanceType: "t2.micro"
+          PrivateIpAddress:
+            Ref: ip
+          SecurityGroupIds:
+            - Ref: NodeSecurityGroup
+          SubnetId: 
+            Ref: PublicSubnet1
+          Tags:
+            -
+              Key: Name
+              Value: !Sub ${Name} EC2
+          UserData:
+            Fn::Base64: |
+              #!/bin/bash -xe
+              yum update -y
+              yum install -y httpd24
+              service httpd start
+              chkconfig httpd on
+              echo "Node A" >/var/www/html/index.html
+
+
+
+
+    

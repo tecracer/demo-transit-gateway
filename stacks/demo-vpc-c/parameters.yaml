@@ -1,0 +1,4 @@
+Cidr: "10.0.3.0/24"
+Name: "Demo_C"
+key : "default-lab-key"
+ip  : "10.0.3.16"

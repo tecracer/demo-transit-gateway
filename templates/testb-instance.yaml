@@ -1,0 +1,43 @@
+  AWSTemplateFormatVersion: "2010-09-09"
+  Description: "Ec2 node with apache"
+  Parameters:
+    ami:
+      Description: Launch ami
+      Type: String
+    key:
+      Description: ssh key
+      Type: String
+    name:
+      Description: Ec2 Name
+      Type: String
+    ip:
+      Description: IP for Instance
+      Type: String
+  Resources: 
+    MyEC2Instance: 
+      Type: AWS::EC2::Instance
+      Properties: 
+        ImageId: 
+          Ref: ami
+        KeyName: 
+          Ref: key
+        InstanceType: "t2.micro"
+        PrivateIpAddress:
+          Ref: ip
+        SecurityGroupIds:
+          - Fn::ImportValue: demo-transit-node-securitygroup
+        SubnetId: 
+          Fn::ImportValue: demo-transit-subnetB
+        Tags:
+          -
+            Key: Name
+            Value: 
+              Ref: name
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash -xe
+            yum update -y
+            yum install -y httpd24
+            service httpd start
+            chkconfig httpd on
+            echo "Node B" >/var/www/html/index.html

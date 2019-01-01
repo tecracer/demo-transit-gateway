@@ -1,0 +1,88 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  Cidr:
+    Description: Cidr
+    Type: String
+    Default: 10.0.0.0/24
+    AllowedPattern: ^(([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])\.){3}([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])(\/(1[6-9]|2[0-8]))$
+  Name:
+    Description: Name 
+    Type: String
+    Default: "noname"
+Resources:
+  IGW:
+    Properties: {}
+    Type: AWS::EC2::InternetGateway
+  NatGatewayEIP1:
+    Properties:
+      Domain: vpc
+    Type: AWS::EC2::EIP
+  NatGateway:
+    Properties:
+      SubnetId: !Ref Subnet
+      AllocationId: !GetAtt NatGatewayEIP1.AllocationId
+    Type: AWS::EC2::NatGateway
+
+  WebSG:
+    Properties:
+      GroupDescription: Allow http from 10 Block
+      GroupName: node
+      SecurityGroupIngress:
+      - CidrIp: 10.0.0.0/16
+        FromPort: 0
+        IpProtocol: tcp
+        ToPort: 80
+      - CidrIp: 89.247.124.85/32
+        FromPort: 0
+        IpProtocol: tcp
+        ToPort: 22
+      Tags:
+      - Key: Name
+        Value: Node A
+      - Key: Project
+        Value: DemoTG
+      VpcId: !Ref NodeVPC
+    Type: AWS::EC2::SecurityGroup
+ 
+  Route1RouteTableVPCA:
+    Properties:
+      DestinationCidrBlock: 0.0.0.0/0
+      NatGatewayId: !Ref NatGateway
+      RouteTableId: !Ref RouteTable
+    Type: AWS::EC2::Route
+
+  RouteTable:
+    Properties:
+      VpcId: !Ref NodeVPC
+    Type: AWS::EC2::RouteTable
+
+  Subnet:
+    Properties:
+      AvailabilityZone: 
+          Fn::Select:
+            - 2
+            - Fn::GetAZs: ""
+      CidrBlock: !Ref Cidr
+      Tags:
+      - Key: Name
+        Value: TransitGatewayDemoSubnetC
+      VpcId: !Ref NodeVPC
+    Type: AWS::EC2::Subnet
+ 
+ 
+  VPCAttachment:
+    Properties:
+      InternetGatewayId: !Ref IGW
+      VpcId: !Ref NodeVPC
+    Type: AWS::EC2::VPCGatewayAttachment
+ 
+  NodeVPC:
+    Properties:
+      CidrBlock: !Ref Cidr
+      Tags:
+      - Key: Project
+        Value: DemoTG
+      - Key: Name
+        Value: !Ref Name
+    Type: AWS::EC2::VPC
+  

@@ -1,0 +1,31 @@
+---
+driver:
+  name: ec2
+  region: eu-west-1
+provisioner:
+  name: chef_zero
+  always_update_cookbooks: true
+
+verifier:
+  name: inspec
+
+transport:
+ username: ["ec2-user"]
+
+# See https://github.com/test-kitchen/kitchen-ec2
+
+platforms:
+  - name: amazon
+    driver: 
+      region: eu-central-1
+      image_id: ami-0cfbf4f6db41068ac
+      instance_type: t2.large
+      subnet_id: subnet-0805636f48c6721df
+      tags:
+        Name: "Kitchen Test Instance ec2"
+
+
+suites:
+  - name: default
+
+

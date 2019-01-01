@@ -1,0 +1,19 @@
+[
+    {
+        "ParameterKey": "Cidr",
+        "ParameterValue": "10.0.2.0/24"
+    },
+    {
+        "ParameterKey": "Name",
+        "ParameterValue": "Demo B"
+    },
+    {
+        "ParameterKey": "ip",
+        "ParameterValue": "10.0.2.16"
+    },
+    {
+        "ParameterKey": "key",
+        "ParameterValue": "default-lab-key"
+    }
+    
+]

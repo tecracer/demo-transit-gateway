@@ -1,0 +1,16 @@
+global:
+  owner: gglawe@tecracer.de
+  qsname: demo-transit-gateway 
+  regions:
+    - eu-central-1
+    - eu-west-1
+tests:
+  scenario-a:
+    parameter_input: debug_a.json
+    template_file: testa.yaml
+  scenario-b:
+    parameter_input: debug_b.json
+    template_file: testa.yaml
+  scenario-c:
+    parameter_input: debug_c.json
+    template_file: testa.yaml
