@@ -1,7 +1,7 @@
 ---
 driver:
   name: ec2
-  region: eu-west-1
+  region: eu-central-1
 provisioner:
   name: chef_zero
   always_update_cookbooks: true
@@ -20,7 +20,7 @@ platforms:
       region: eu-central-1
       image_id: ami-0cfbf4f6db41068ac
       instance_type: t2.large
-      subnet_id: subnet-0805636f48c6721df
+      subnet_id: subnet-0983e93a407f2cccf
       tags:
         Name: "Kitchen Test Instance ec2"
 

@@ -27,7 +27,6 @@ describe: ## Shows VPC-A resources
 	clouds describe demo-vpc-a
 
 delete: ## Delete Stack 
-	#clouds delete -f --events $(stacka-instance) 
 	clouds  -r $(region) delete -f --events $(stacka) &
 	clouds  -r $(region) delete -f --events $(stackb) &
 	clouds  -r $(region) delete -f --events $(stackc) &

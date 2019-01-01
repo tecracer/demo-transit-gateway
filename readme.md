@@ -4,22 +4,24 @@ This is a Transit Gateway demomstration for demonstration and training purposes.
 
 Questions to G.Glawe gglawe@tecracer.de
 
-This demonstration has four parts:
+This demonstration has three parts:
 
 1) Automatic testing of  CloudFormation stacks with taskCat
     Used for the VPCs and EC2 instances
-2) Automatic testing of Webserver accesibility with **inspec**
-    User for thesting of Tranit Gateway
+2) Automatic testing of Webserver accessibility with **inspec**
+    User for thesting of Transit Gateway
 3) Manually create Transit Gateway
    And test configuration with **inspec**
 
-See for german Introduction: [Blog](http://www.aws-blog.de/?p=2955&preview_id=2955&preview_nonce=5205b0087d&post_format=standard&_thumbnail_id=-1&preview=true)
+See for german Introduction: [Blog](http://www.aws-blog.de/2018/12/20/mit-allen-verbunden-test-transit-gateway-mit-cloudformation-taskcat-teil-1-und-kitchen-inspec-teil-2/)
 
 This is only configured for regions eu-west-1 and eu-central-1. But you should easily be able to update it to use other regions.
 
 ## What does it do?
 
-This demo creates three VPCs with EC2 instances in it via cloudformation. The CloudFormation is tested with taskCat. On each instance a webserver runs on port 80. The security group opens them 
+This demo creates three VPCs with EC2 instances in it via cloudformation. The CloudFormation is tested with taskCat. On each instance a webserver runs on port 80. The security group opens them to port 80.
+
+![overview](img/blog-vpcs.png)
 
 ## Configuration
 
@@ -27,14 +29,14 @@ You need [taskCat](https://aws-quickstart.github.io/taskcat/).
 
 Then install [clouds-aws](https://github.com/elias5000/clouds-aws).
 
-For part 2 you nedd to install the [ChefDK](https://downloads.chef.io/chefdk)
+For part 2/3 you nedd to install the [ChefDK](https://downloads.chef.io/chefdk)
 
 I assume you have a bash and make installed.
 This is tested on a mac and should run on linux also.
 
 Also you need proper AWS credentials configured.
 
-And you have to have an EC2 ssh key called "default-lab-key" in your region of choice. If the name differs, you can change it in the "stacks/demo*(parameters.yaml). The key is used to spin up the instances. For the demo you do not have to ssh into the instances, but you might want to run some additional tests from within the instances.
+And you have to have an EC2 ssh key called "default-lab-key" in your region of choice. If the name differs, you can change it in the `stacks/demo*/parameters.yaml`. The key is used to spin up the instances. For the demo you do not have to ssh into the instances, but you might want to run some additional tests from within the instances.
 
 ## Execute Tests
 
@@ -79,7 +81,13 @@ And you have to have an EC2 ssh key called "default-lab-key" in your region of c
 
 8) `make start-kitchen`
 
-    Starts the kitchen test instance. Takes about 1 minute.
+    Starts the kitchen test instance in VPC Demo_A. Takes about 1 minute.
+
+    If the instance is not created check:
+    - image_id in .kitchen.yml
+    - subnet_id in .kitchen.yml
+    - try `kitchen destroy` to destroy previos instances
+    - try deleting subdir `.kitchen` and retry
 
 9) `make test-kitchen`
 
@@ -159,8 +167,8 @@ Congratiolation, you have tested CloudFormation and Routing for connecting two V
 Don`t forget to clean up, cause some resources cost money.
 
 1) Delete Transit Gateway Attachments one by one
-2) `make delete-kitchen`
+2) Delete Transit Gateway 
+3) `make delete-kitchen`
     Destroy Kitchen test instance
-3) Delete Transit Gateway.
 4) `make delete`
     This deletes the stacks with the VPCs and Instances
